@@ -4,6 +4,8 @@ import { useState } from "react"
 import Image from "next/image"
 import Link from "next/link"
 import type { Photo } from "@/lib/types"
+import { getOptimizedImageUrl } from "@/lib/sanity";
+
 
 interface PhotoGalleryProps {
   photos: Photo[]
@@ -38,14 +40,14 @@ export default function PhotoGallery({ photos = [] }: PhotoGalleryProps) {
                   </div>
                 ) : (
                   <Image
-                    src={photo.imageUrl}
-                    alt={photo.title || 'Photo'}
-                    fill
-                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                    className="object-cover hover:scale-105 transition-transform duration-300"
-                    onError={() => setFailedImages(prev => ({ ...prev, [photo._id]: true }))}
-                    unoptimized
-                  />
+                  src={getOptimizedImageUrl(photo.imageUrl) || ''}
+                  alt={photo.title || 'Photo'}
+                  fill
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                  className="object-cover hover:scale-105 transition-transform duration-300"
+                  onError={() => setFailedImages(prev => ({ ...prev, [photo._id]: true }))}
+                  unoptimized
+                />
                 )}
               </div>
               <div className="mt-2">
