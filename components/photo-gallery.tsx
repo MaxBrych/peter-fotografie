@@ -1,5 +1,6 @@
 "use client"
 
+import { useState } from "react"
 import Image from "next/image"
 import Link from "next/link"
 import type { Photo } from "@/lib/types"
@@ -9,14 +10,14 @@ interface PhotoGalleryProps {
 }
 
 export default function PhotoGallery({ photos = [] }: PhotoGalleryProps) {
+  const [failedImages, setFailedImages] = useState<Record<string, boolean>>({})
+
   // Create columns for masonry layout
   const createColumns = (photos: Photo[], columnCount: number) => {
     const columns: Photo[][] = Array.from({ length: columnCount }, () => [])
-
     photos.forEach((photo, index) => {
       columns[index % columnCount].push(photo)
     })
-
     return columns
   }
 
@@ -30,13 +31,25 @@ export default function PhotoGallery({ photos = [] }: PhotoGalleryProps) {
           {column.map((photo) => (
             <Link key={photo._id} href={`/photos/${photo.slug}`} className="block w-full">
               <div className="relative aspect-[4/3] overflow-hidden">
-                <Image
-                  src={`${photo.imageUrl}?w=800&q=75`} // Lower quality preview
-                  alt={photo.title}
-                  fill
-                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                  className="object-cover hover:scale-105 transition-transform duration-300"
-                />
+                {failedImages[photo._id] || !photo.imageUrl ? (
+                  // Fallback to standard img tag or placeholder
+                  <div className="w-full h-full bg-gray-200 flex items-center justify-center">
+                    <span className="text-gray-400">Image not available</span>
+                  </div>
+                ) : (
+                  <Image
+                    src={photo.imageUrl}
+                    alt={photo.title || 'Photo'}
+                    fill
+                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                    className="object-cover hover:scale-105 transition-transform duration-300"
+                    onError={() => setFailedImages(prev => ({ ...prev, [photo._id]: true }))}
+                    unoptimized
+                  />
+                )}
+              </div>
+              <div className="mt-2">
+                <h3 className="font-medium">{photo.title}</h3>
               </div>
             </Link>
           ))}
@@ -45,4 +58,3 @@ export default function PhotoGallery({ photos = [] }: PhotoGalleryProps) {
     </div>
   )
 }
-
